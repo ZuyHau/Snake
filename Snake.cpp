@@ -1,3 +1,8 @@
+/******************************************************************************
+ * PROJECT: SNAKE MASTER EDITION - CYBER CORE v3.2 (NEURAL SHIELD FIX)
+ * AUTHOR: NGUYEN LE DUY HAU - MSSV: 25520518
+ ******************************************************************************/
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,48 +13,56 @@
 
 using namespace std;
 
-// --- CONFIG HỆ THỐNG ---
 #define SCREEN_W 120
-#define SCREEN_H 40
-#define GAME_W 50
-#define GAME_H 20
+#define SCREEN_H 42
+#define GAME_W 60
+#define GAME_H 22
 
-// Bảng màu Cyber-Core
+#define C_DARK_GRAY 8
+#define C_GRAY 7
+#define C_GREEN 10
 #define C_CYAN 11
+#define C_RED 12
 #define C_PINK 13
 #define C_YELLOW 14
 #define C_WHITE 15
-#define C_DARK_GRAY 8
-#define C_GREEN 10
-#define C_RED 12
 
-enum State { BOOTING, MAIN_MENU, IN_GAME, PAUSED, CRITICAL_FAILURE };
+enum State { BOOTING, MAIN_MENU, MISSION_SELECT, IN_GAME, SETTINGS, PAUSED, CRITICAL_FAILURE };
 enum Dir { STOP = 0, LEFT, RIGHT, UP, DOWN };
 struct Point { int x, y; };
 
 // ============================================================================
-// [MODULE 1] QUẢN LÝ DỮ LIỆU (HIGH SCORE)
+// [MODULE 1] DATA PERSISTENCE - ĐÃ VẶN ỐC CHỐNG LỖI BỘ NHỚ
 // ============================================================================
 class EngineData {
 public:
     int highScore = 0;
-    string owner = "DUY HAU";
+    int currentSkin = 0;   
+    int selectedLevel = 0; 
+    string owner = "DUY_HAU"; // Dùng gạch dưới để tránh lỗi đọc file
     string id = "25520518";
 
     void Load() {
         ifstream f("system.log");
-        if (f.is_open()) { f >> owner >> id >> highScore; f.close(); }
+        if (f.is_open()) {
+            // Đọc dữ liệu an toàn
+            if (!(f >> owner >> id >> highScore >> currentSkin >> selectedLevel)) {
+                // Nếu file rác, reset về mặc định
+                highScore = 0; currentSkin = 0; selectedLevel = 0;
+            }
+            f.close();
+            // Neural Shield: Đảm bảo chỉ số skin không bao giờ vượt quá 2
+            if (currentSkin < 0 || currentSkin > 2) currentSkin = 0;
+            if (selectedLevel < 0 || selectedLevel > 2) selectedLevel = 0;
+        }
     }
     void Sync() {
         ofstream f("system.log");
-        f << owner << " " << id << " " << highScore;
+        f << owner << " " << id << " " << highScore << " " << currentSkin << " " << selectedLevel;
         f.close();
     }
 };
 
-// ============================================================================
-// [MODULE 2] RENDERER XỊN (CHỐNG NHÁY MÀN HÌNH)
-// ============================================================================
 class MasterRenderer {
 private:
     HANDLE hOut;
@@ -81,27 +94,25 @@ public:
     void DrawBorder(int x, int y, int w, int h, WORD col, string tag = "") {
         for (int i = x; i <= x + w; i++) { Put(i, y, 0x2550, col); Put(i, y + h, 0x2550, col); }
         for (int i = y; i <= y + h; i++) { Put(x, i, 0x2551, col); Put(x + w, i, 0x2551, col); }
+        Put(x, y, 0x2554, col); Put(x + w, y, 0x2557, col);
+        Put(x, y + h, 0x255A, col); Put(x + w, y + h, 0x255D, col);
         if (!tag.empty()) Write(x + 2, y, "[ " + tag + " ]", col);
     }
-    void Flush() {
-        WriteConsoleOutputW(hOut, buffer, { (short)SCREEN_W, (short)SCREEN_H }, { 0, 0 }, &rect);
-    }
+    void Flush() { WriteConsoleOutputW(hOut, buffer, { (short)SCREEN_W, (short)SCREEN_H }, { 0, 0 }, &rect); }
 };
 
-// ============================================================================
-// [MODULE 3] HỆ THỐNG GAME (NƠI RenderAll XUẤT HIỆN)
-// ============================================================================
 class SnakeEliteEngine {
 private:
     MasterRenderer rd;
     EngineData data;
     State state = BOOTING;
     vector<Point> snake;
+    vector<Point> walls;
     Point food;
     Dir direction = RIGHT;
-    int score = 0;
+    int menuIdx = 0;
     int bootLevel = 0;
-    long long frameCount = 0;
+    int score = 0;
     bool isActive = true;
 
 public:
@@ -112,86 +123,137 @@ public:
     }
 
     void InitSnake() {
-        snake.clear();
+        snake.clear(); walls.clear();
         for (int i = 0; i < 5; i++) snake.push_back({ 20 - i, 10 });
-        food = { 30, 10 };
+        if (data.selectedLevel == 1) { 
+            for(int i=6; i<16; i++) { walls.push_back({25, i}); walls.push_back({45, i}); }
+        }
+        food = { 35, 10 };
         score = 0; direction = RIGHT;
     }
 
-    void Update() {
-        frameCount++;
-        if (state == BOOTING) { if (++bootLevel > 100) state = IN_GAME; return; }
-        if (state != IN_GAME) return;
+    void TriggerAction() {
+        if (state == BOOTING) state = MAIN_MENU;
+        else if (state == MAIN_MENU) {
+            if (menuIdx == 0) { state = MISSION_SELECT; menuIdx = 0; }
+            else if (menuIdx == 1) { state = SETTINGS; menuIdx = 0; }
+            else if (menuIdx == 2) isActive = false;
+        }
+        else if (state == MISSION_SELECT) {
+            data.selectedLevel = menuIdx;
+            InitSnake(); state = IN_GAME;
+        }
+        else if (state == SETTINGS) {
+            if (menuIdx == 0) { 
+                data.currentSkin = (data.currentSkin + 1) % 3; 
+                Beep(1000, 30); 
+            }
+            else { 
+                data.Sync();
+                state = MAIN_MENU; menuIdx = 0; 
+            }
+        }
+        else if (state == PAUSED || state == CRITICAL_FAILURE) state = MAIN_MENU;
+    }
 
-        // Input vặn ốc
+    void Update() {
+        if (state == BOOTING) { if (++bootLevel > 100) state = MAIN_MENU; return; }
+
         if (kbhit()) {
             char t = getch();
-            if (t == 'a' && direction != RIGHT) direction = LEFT;
-            if (t == 'd' && direction != LEFT)  direction = RIGHT;
-            if (t == 'w' && direction != DOWN)  direction = UP;
-            if (t == 's' && direction != UP)    direction = DOWN;
-            if (t == 27) state = PAUSED;
+            if (state == IN_GAME) {
+                if ((t == 'w' || t == 'W') && direction != DOWN) direction = UP;
+                if ((t == 's' || t == 'S') && direction != UP) direction = DOWN;
+                if ((t == 'a' || t == 'A') && direction != RIGHT) direction = LEFT;
+                if ((t == 'd' || t == 'D') && direction != LEFT) direction = RIGHT;
+                if (t == 27) state = PAUSED;
+            } else {
+                int maxIdx = (state == SETTINGS) ? 1 : 2;
+                if (t == 72 || t == 'w') { menuIdx = (menuIdx <= 0) ? maxIdx : menuIdx - 1; Beep(800, 10); }
+                if (t == 80 || t == 's') { menuIdx = (menuIdx >= maxIdx) ? 0 : menuIdx + 1; Beep(800, 10); }
+                if (t == 13) TriggerAction();
+            }
         }
 
-        // Tốc độ Overclock
+        if (state != IN_GAME) return;
+
         static int moveTick = 0;
-        int limit = max(1, 5 - (score / 50)); 
-        if (++moveTick < limit) return;
+        if (++moveTick < max(1, 6 - (score / 100))) return;
         moveTick = 0;
 
-        // Logic di chuyển
         Point head = snake[0];
         if (direction == UP) head.y--; else if (direction == DOWN) head.y++;
         else if (direction == LEFT) head.x--; else if (direction == RIGHT) head.x++;
 
-        // Va chạm
-        if (head.x <= 0 || head.x >= GAME_W || head.y <= 0 || head.y >= GAME_H) { state = CRITICAL_FAILURE; return; }
-        
+        if (data.selectedLevel == 2) {
+            if (head.x <= 0) head.x = GAME_W - 1; else if (head.x >= GAME_W) head.x = 1;
+            if (head.y <= 0) head.y = GAME_H - 1; else if (head.y >= GAME_H) head.y = 1;
+        } else {
+            if (head.x <= 0 || head.x >= GAME_W || head.y <= 0 || head.y >= GAME_H) { state = CRITICAL_FAILURE; return; }
+        }
+
+        for (auto w : walls) if (head.x == w.x && head.y == w.y) { state = CRITICAL_FAILURE; return; }
+        for (size_t i = 1; i < snake.size(); i++) if (head.x == snake[i].x && head.y == snake[i].y) { state = CRITICAL_FAILURE; return; }
+
         snake.insert(snake.begin(), head);
         if (head.x == food.x && head.y == food.y) {
             score += 10;
             if (score > data.highScore) { data.highScore = score; data.Sync(); }
             food = { rand() % (GAME_W - 2) + 1, rand() % (GAME_H - 2) + 1 };
-            Beep(1000, 20);
+            Beep(1200, 10);
         } else snake.pop_back();
     }
 
-    // ĐÂY NÈ HẬU! Hàm RenderAll gom tất cả việc vẽ vào một chỗ
     void RenderAll() {
         rd.ResetBuffer();
-
         if (state == BOOTING) {
-            rd.Write(SCREEN_W/2 - 10, 10, "SYSTEM BOOTING...", C_CYAN);
-            rd.DrawBorder(SCREEN_W/2 - 15, 12, 30, 2, C_DARK_GRAY);
-            for(int i=0; i<bootLevel*30/100; i++) rd.Put(SCREEN_W/2 - 14 + i, 13, 0x2588, C_CYAN);
+            rd.Write(SCREEN_W/2 - 12, 20, "FIXING NEURAL LINK v3.2...", C_CYAN);
+            for (int i = 0; i < bootLevel * 38 / 100; i++) rd.Put(SCREEN_W/2 - 19 + i, 22, 0x2588, C_CYAN);
         }
-        else if (state == IN_GAME) {
-            rd.DrawBorder(2, 2, GAME_W, GAME_H, C_CYAN, "MISSION_AREA");
-            rd.Put(food.x + 2, food.y + 2, 0x2665, C_RED); // Mồi ♥
+        else if (state == MAIN_MENU || state == MISSION_SELECT || state == SETTINGS) {
+            rd.Write(SCREEN_W/2 - 15, 8, "=== SNAKE MASTER EDITION ===", C_PINK);
+            string m[3]; int count = 0;
+            
+            if (state == MAIN_MENU) { m[0] = "MISSION SELECT"; m[1] = "SKIN DATABASE"; m[2] = "SHUTDOWN"; count = 3; }
+            else if (state == MISSION_SELECT) { m[0] = "CLASSIC AREA"; m[1] = "NEURAL WALLS"; m[2] = "PORTAL SECTOR"; count = 3; }
+            else { 
+                string skins[] = {"NEON GREEN", "CYBER PINK", "GOLDEN ERA"};
+                // Shield check: Đảm bảo index không bao giờ vượt quá 2
+                int safeIdx = data.currentSkin % 3;
+                m[0] = "CURRENT SKIN: " + skins[safeIdx]; 
+                m[1] = "SAVE & BACK"; 
+                count = 2; 
+            }
+
+            for (int i = 0; i < count; i++) {
+                WORD col = (menuIdx == i) ? C_CYAN : C_DARK_GRAY;
+                if (state == SETTINGS && i == 0) {
+                    WORD sc[] = {C_GREEN, C_PINK, C_YELLOW};
+                    col = (menuIdx == 0) ? sc[data.currentSkin % 3] : C_GRAY;
+                }
+                rd.Write(SCREEN_W/2 - 12, 18 + i * 2, (menuIdx == i ? ">> " : "   ") + m[i], col);
+            }
+        }
+        else if (state == IN_GAME || state == PAUSED) {
+            WORD snakeCol = (data.currentSkin % 3 == 0) ? C_GREEN : (data.currentSkin % 3 == 1 ? C_PINK : C_YELLOW);
+            string tags[] = {"CLASSIC", "NEURAL_WALLS", "PORTAL_SECTOR"};
+            rd.DrawBorder(5, 5, GAME_W, GAME_H, C_CYAN, tags[data.selectedLevel % 3]);
+            for (auto w : walls) rd.Put(w.x + 5, w.y + 5, 0x2593, C_DARK_GRAY);
+            rd.Put(food.x + 5, food.y + 5, 0x2665, C_RED);
             for (size_t i = 0; i < snake.size(); i++)
-                rd.Put(snake[i].x + 2, snake[i].y + 2, (i == 0 ? 'O' : 'x'), (i == 0 ? C_WHITE : C_GREEN));
-
-            rd.DrawBorder(GAME_W + 5, 2, 25, 6, C_YELLOW, "STATS");
-            rd.Write(GAME_W + 7, 4, "SCORE: " + to_string(score), C_WHITE);
-            rd.Write(GAME_W + 7, 6, "HIGH : " + to_string(data.highScore), C_PINK);
+                rd.Put(snake[i].x + 5, snake[i].y + 5, (i == 0 ? 0x25C8 : 0x2588), (i == 0 ? C_WHITE : snakeCol));
+            rd.Write(GAME_W + 12, 7, "SCORE: " + to_string(score), C_WHITE);
+            rd.Write(GAME_W + 12, 9, "HIGH : " + to_string(data.highScore), C_PINK);
+            rd.Write(GAME_W + 12, 11, "ID   : " + data.id, C_GRAY);
         }
-        else if (state == CRITICAL_FAILURE) {
-            rd.Write(SCREEN_W/2 - 10, SCREEN_H/2, "GAME OVER! PRESS R", C_RED);
-        }
-
-        rd.Flush(); // Đẩy toàn bộ buffer ra màn hình 1 lần duy nhất
+        else if (state == CRITICAL_FAILURE) rd.Write(SCREEN_W/2 - 10, SCREEN_H/2, "CORE COLLAPSED! [ENTER]", C_RED);
+        rd.Flush();
     }
-
-    void Run() {
-        while (isActive) {
-            Update();
-            RenderAll();
-            Sleep(20);
-        }
-    }
+    void Run() { while (isActive) { Update(); RenderAll(); Sleep(15); } }
 };
 
 int main() {
+    SetConsoleTitleA("SNAKE MASTER EDITION - v3.2");
     SnakeEliteEngine engine;
     engine.Run();
     return 0;
