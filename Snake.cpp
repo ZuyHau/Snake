@@ -3,23 +3,28 @@
 #include <cstdlib>
 #include <conio.h>
 #include <vector>
+
 using namespace std;
 
-void gotoxy( int column, int line );
+
+void gotoxy(int column, int line);
 void VeKhung(int rong, int cao); 
 
-struct Point{
-    int x,y;
+
+struct Point {
+    int x, y;
 };
 
 enum Dir { STOP = 0, LEFT, RIGHT, UP, DOWN };
 enum State { BOOTING, MAIN_MENU, IN_GAME, CRITICAL_FAILURE };
 
-class CONRAN{
+class CONRAN {
 public:
     vector<Point> snake; 
+    
     void InitSnake() {
         snake.clear();
+      
         for (int i = 0; i < 5; i++) snake.push_back({ 20 - i, 12 });
     }
     
@@ -27,17 +32,17 @@ public:
         for (size_t i = 0; i < snake.size(); i++) {
             gotoxy(snake[i].x, snake[i].y);
             if (i == 0) cout << "O"; 
-            else cout << "x";        
+            else cout << "x";      
         }
     }
 
     void DiChuyen(Dir direction) {
-
+        
         for (size_t i = snake.size() - 1; i > 0; i--) {
             snake[i] = snake[i - 1];
         }
 
- 
+    
         switch (direction) {
             case UP:    snake[0].y--; break;
             case DOWN:  snake[0].y++; break;
@@ -48,17 +53,17 @@ public:
     }
 };
 
-int main()
-{
+int main() {
     CONRAN r;
     r.InitSnake();
     Dir direction = RIGHT;
     char t;
 
-    int chieuRongKhung = 50; 
-    int chieuCaoKhung = 20;  
+ 
+    int chieuRongKhung = 50;  
+    int chieuCaoKhung = 20;   
 
-    while (1){
+    while (1) {
         if (kbhit()) {
             t = getch();
             if (t == 'a' && direction != RIGHT) direction = LEFT;
@@ -70,27 +75,26 @@ int main()
         
         system("cls");
         
+    
         VeKhung(chieuRongKhung, chieuCaoKhung); 
         r.Ve();
         r.DiChuyen(direction);
         
-        Sleep(100);
+        Sleep(100); 
     }
 
     return 0;
 }
 
-
-void gotoxy( int column, int line )
-{
+void gotoxy(int column, int line) {
     COORD coord;
     coord.X = column;
     coord.Y = line;
-    SetConsoleCursorPosition(GetStdHandle( STD_OUTPUT_HANDLE ), coord);
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
-
 void VeKhung(int rong, int cao) {
+ 
     for (int i = 0; i <= rong; i++) {
         gotoxy(i, 0); cout << "#";
         gotoxy(i, cao); cout << "#";
