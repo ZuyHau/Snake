@@ -1,12 +1,12 @@
 /******************************************************************************
- * PROJECT       : SNAKE MASTER EDITION - THE NEURAL OVERLORD
- * VERSION       : 17.0.5 - TITAN KERNEL RELEASE (ENTERPRISE GRADE)
- * AUTHOR        : NGUYEN LE DUY HAU (ZuyHau)
- * STUDENT ID    : 25520518
- * CLASS         : KTMT.1 - COMPUTER ENGINEERING (UIT)
- * FACULTY       : UNIVERSITY OF INFORMATION TECHNOLOGY (VNU-HCM)
- * ENVIRONMENT   : Win32 Console Environment
- * COMPILER      : MinGW-w64 / G++ 11.0+
+ * PROJECT        : SNAKE MASTER EDITION - THE NEURAL OVERLORD
+ * VERSION        : 17.0.6 - TITAN KERNEL RELEASE (ENTERPRISE GRADE - CHEAT ENABLED)
+ * AUTHOR         : NGUYEN LE DUY HAU (ZuyHau)
+ * STUDENT ID     : 25520518
+ * CLASS          : KTMT.1 - COMPUTER ENGINEERING (UIT)
+ * FACULTY        : UNIVERSITY OF INFORMATION TECHNOLOGY (VNU-HCM)
+ * ENVIRONMENT    : Win32 Console Environment
+ * COMPILER       : MinGW-w64 / G++ 11.0+
  * ----------------------------------------------------------------------------
  * [HARDWARE OPTIMIZATION TARGET]
  * - CPU: Intel Core i5-9400F @ 2.90GHz
@@ -19,6 +19,7 @@
  * 3. AI SYSTEM  : HEURISTIC NEURAL TARGETING MATRIX v5.0
  * 4. VFX CORE   : DETERMINISTIC PARTICLE DYNAMICS WITH VECTOR MATH
  * 5. PERSISTENCE: KERNEL DATA LOGGING & USER CONFIGURATION RECOVERY
+ * 6. EXPLOIT    : NEURAL GOD MODE - INTEGRATED CHEAT SYSTEM
  * ----------------------------------------------------------------------------
  * ĐỒ ÁN KỸ THUẬT MÁY TÍNH - CHẠM MỐC 1000 DÒNG CODE CHUẨN CHỈ.
  ******************************************************************************/
@@ -375,7 +376,7 @@ public:
             " XXXXX  XX   XX  XXXXX  XX  XX XXXXXXX",
             "XX   XX XXX  XX XX   XX XX XX  XX     ",
             "  XXX   XX X XX XXXXXXX XXXX   XXXXX  ",
-            "    XXX XX  XXX XX   XX XX XX  XX     ",
+            "   XXX XX  XXX XX   XX XX XX  XX     ",
             "XXXXXX  XX   XX XX   XX XX  XX XXXXXXX"
         };
         for (int i = 0; i < 5; i++) {
@@ -389,13 +390,13 @@ public:
     /** @brief Hiệu ứng chữ "GAME OVER" 3D siêu thực cho dân Kỹ thuật */
     void DrawDeathScreenArt(int x, int y, int tick) {
         string art[7] = {
-            "  ________  ________  _____ ______   _______           ________  ___      ___ _______   ________     ",
-            " |\\   ____\\|\\   __  \\|\\   _ \\  _   \\|\\  ___ \\         |\\   __  \\|\\  \\    /  /|\\  ___ \\ |\\   __  \\    ",
-            " \\ \\  \\___|\\ \\  \\|\\  \\ \\  \\\\\\__\\ \\  \\ \\   __/|        \\ \\  \\|\\  \\ \\  \\  /  / \\ \\   __/| \\  \\|\\  \\   ",
-            "  \\ \\  \\  __\\ \\   __  \\ \\  \\\\|__| \\  \\ \\  \\_|/__       \\ \\  \\\\\\  \\ \\  \\/  /   \\ \\  \\_|/__\\ \\   _  _\\  ",
-            "   \\ \\  \\|\\  \\ \\  \\ \\  \\ \\  \\    \\ \\  \\ \\  \\_|\\ \\       \\ \\  \\\\\\  \\ \\    /     \\ \\  \\_|\\ \\ \\  \\\\  \\| ",
-            "    \\ \\_______\\ \\__\\ \\__\\ \\__\\    \\ \\__\\ \\_______\\       \\ \\_______\\ \\__/       \\ \\_______\\ \\__\\\\ _\\ ",
-            "     \\|_______|\\|__|\\|__|\\|__|     \\|__|\\|_______|        \\|_______|\\|__|        \\|_______|\\|__|\\|__|"
+            "  ________  ________  _____ ______   _______            ________  ___      ___ _______   ________      ",
+            " |\\   ____\\|\\   __  \\|\\   _ \\  _   \\|\\   ___ \\          |\\   __  \\|\\  \\    /  /|\\   ___ \\ |\\   __  \\    ",
+            " \\ \\  \\___|\\ \\  \\|\\  \\ \\  \\\\\\__\\ \\  \\ \\  \\__/|        \\ \\  \\|\\  \\ \\  \\  /  / \\ \\  \\__/| \\  \\|\\  \\   ",
+            "  \\ \\  \\  __\\ \\   __  \\ \\  \\|__| \\  \\ \\  \\_|/__        \\ \\   \\\\  \\ \\  \\/  /   \\ \\  \\_|/__\\ \\   _  _\\  ",
+            "   \\ \\  \\|\\  \\ \\  \\ \\  \\ \\  \\    \\ \\  \\ \\  \\_|\\ \\        \\ \\  \\\\  \\ \\   /      \\ \\  \\_|\\ \\ \\  \\\\  \\| ",
+            "    \\ \\_______\\ \\__\\ \\__\\ \\__\\    \\ \\__\\ \\_______\\        \\ \\_______\\ \\__/        \\ \\_______\\ \\__\\\\ _\\ ",
+            "     \\|_______|\\|__|\\|__|\\|__|     \\|__|\\|_______|         \\|_______|\\|__|         \\|_______|\\|__|\\|__|"
         };
         WORD color = (tick % 4 < 2) ? C_RED : C_WHITE;
         for (int i = 0; i < 7; i++) {
@@ -536,12 +537,17 @@ private:
     Direction pDir;
     int mIdx, bTick, score, fTick;
     bool isEngineRunning;
+    
+    // --- [EXPLOIT MODULE] ---
+    bool isGodMode; // Cheat Flag: Invincibility & Boost
+    // ------------------------
 
 public:
     TitanEngine() {
         srand((unsigned int)time(NULL));
         state = BOOTING; isEngineRunning = true;
         mIdx = 0; bTick = 0; score = 0; fTick = 0;
+        isGodMode = false; // Mặc định tắt Cheat
         mem.LoadFromDisk();
         logger.Log("TITAN KERNEL v17.0 INITIALIZED ON " + mem.username);
         InitializeNewGame();
@@ -560,6 +566,29 @@ public:
 
     /** @brief Driver điều khiển: Hỗ trợ W/S và Mũi tên cho mọi Menu */
     void ProcessInputDriver() {
+        // [CHEAT TRIGGER] - Phím C để kích hoạt God Mode & Nổ tung tóe hạt Sparks
+        if (GetAsyncKeyState('C') & 0x8000) {
+            isGodMode = !isGodMode;
+            AudioDriver::Trigger(2000, 50, mem.isAudioActive);
+            logger.Log(isGodMode ? "NEURAL_GOD_MODE: ENABLED" : "NEURAL_GOD_MODE: DISABLED");
+            
+            // Kích hoạt nổ hạt Sparks màu hồng nếu đang trong màn chơi
+            if (state == IN_GAME && !snake.empty()) {
+                // Gọi 3 lần để spam 90 hạt bay tung tóe ra xung quanh đầu rắn
+                vfx.TriggerBurst(snake[0].x + 10, snake[0].y + 10, C_PINK);
+                vfx.TriggerBurst(snake[0].x + 10, snake[0].y + 10, C_PINK);
+                vfx.TriggerBurst(snake[0].x + 10, snake[0].y + 10, C_PINK);
+            }
+            Sleep(200);
+        }
+        
+        // [CHEAT TRIGGER] - Phím V để tăng 100 điểm tức thì (Chỉ hoạt động khi bật God Mode)
+        if (isGodMode && (GetAsyncKeyState('V') & 0x8000)) {
+            score += 100;
+            AudioDriver::Trigger(1500, 20, mem.isAudioActive);
+            Sleep(100);
+        }
+
         if (state == IN_GAME) {
             if (((GetAsyncKeyState('W') & 0x8000) || (GetAsyncKeyState(VK_UP) & 0x8000)) && pDir != DOWN) pDir = UP;
             if (((GetAsyncKeyState('S') & 0x8000) || (GetAsyncKeyState(VK_DOWN) & 0x8000)) && pDir != UP) pDir = DOWN;
@@ -626,12 +655,19 @@ public:
             if (nextHead.x <= 0) nextHead.x = mem.zoneWidth - 1; else if (nextHead.x >= mem.zoneWidth) nextHead.x = 1;
             if (nextHead.y <= 0) nextHead.y = mem.zoneHeight - 1; else if (nextHead.y >= mem.zoneHeight) nextHead.y = 1;
         } else if (nextHead.x <= 0 || nextHead.x >= mem.zoneWidth || nextHead.y <= 0 || nextHead.y >= mem.zoneHeight) { 
-            state = GAME_OVER; AudioDriver::PlaySystemCollapse(mem.isAudioActive); logger.Log("FAIL: BORDER_COLLISION"); return; 
+            // Bypass logic if GodMode active
+            if (!isGodMode) {
+                state = GAME_OVER; AudioDriver::PlaySystemCollapse(mem.isAudioActive); logger.Log("FAIL: BORDER_COLLISION"); return; 
+            } else {
+                // Ghost Wrap: Nếu bật cheat thì tự động đi xuyên tường sang bên kia
+                if (nextHead.x <= 0) nextHead.x = mem.zoneWidth - 1; else if (nextHead.x >= mem.zoneWidth) nextHead.x = 1;
+                if (nextHead.y <= 0) nextHead.y = mem.zoneHeight - 1; else if (nextHead.y >= mem.zoneHeight) nextHead.y = 1;
+            }
         }
 
         // Physics: Object Collision
-        if (world.IsObjectColliding(nextHead)) { state = GAME_OVER; AudioDriver::PlaySystemCollapse(mem.isAudioActive); return; }
-        for (int i = 1; i < (int)snake.size(); i++) if (nextHead == snake[i]) { state = GAME_OVER; return; }
+        if (world.IsObjectColliding(nextHead) && !isGodMode) { state = GAME_OVER; AudioDriver::PlaySystemCollapse(mem.isAudioActive); return; }
+        for (int i = 1; i < (int)snake.size(); i++) if (nextHead == snake[i] && !isGodMode) { state = GAME_OVER; return; }
 
         snake.insert(snake.begin(), nextHead);
         if (nextHead == food) {
@@ -710,6 +746,12 @@ public:
                 gfx.PutChar(snake[i].x + 10, snake[i].y + 10, (i == 0 ? 0x25C8 : 0x2588), (i == 0 ? C_WHITE : sCol));
             gfx.DrawPanel(mem.zoneWidth + 15, 10, 22, 5, C_YELLOW, "LIVE");
             gfx.PutString(mem.zoneWidth + 17, 12, "SCORE: " + to_string(score), C_WHITE);
+            
+            // Render GodMode status if active
+            if (isGodMode) {
+                gfx.PutString(mem.zoneWidth + 17, 14, "[GOD_MODE]", C_PINK);
+            }
+
             if (state == PAUSED) gfx.PutString(SCREEN_W/2 - 5, SCREEN_H/2, "SYSTEM_PAUSED", C_YELLOW);
         }
         else if (state == GAME_OVER) {
