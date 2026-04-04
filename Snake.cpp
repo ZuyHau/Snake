@@ -6,7 +6,7 @@
 using namespace std;
 
 void gotoxy( int column, int line );
-void VeKhung(int rong, int cao); // Khai báo hàm vẽ khung
+void VeKhung(int rong, int cao); 
 
 struct Point{
     int x,y;
