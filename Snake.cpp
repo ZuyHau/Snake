@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <conio.h>
 using namespace std;
+void VeKhung(int rong, int cao);
 void gotoxy( int column, int line );
 struct Point{
     int x,y;
@@ -39,6 +40,8 @@ int main()
     CONRAN r;
     int Huong = 0;
     char t;
+    int ChieuRong = 50;
+    int ChieuCao = 30;
 
     while (1){
         if (kbhit()){
@@ -49,6 +52,7 @@ int main()
             if (t=='s') Huong = 1;
         }
         system("cls");
+        VeKhung(ChieuRong,ChieuCao);
         r.Ve();
         r.DiChuyen(Huong);
         Sleep(300);
@@ -68,3 +72,16 @@ void gotoxy( int column, int line )
     coord
     );
   }
+
+void VeKhung(int rong, int cao) {
+    // Vẽ tường trên (y = 0) và tường dưới (y = cao)
+    for (int i = 0; i <= rong; i++) {
+        gotoxy(i, 0); cout << "#";
+        gotoxy(i, cao); cout << "#";
+    }
+    // Vẽ tường trái (x = 0) và tường phải (x = rong)
+    for (int i = 0; i <= cao; i++) {
+        gotoxy(0, i); cout << "#";
+        gotoxy(rong, i); cout << "#";
+    }
+}
