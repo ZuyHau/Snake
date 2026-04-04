@@ -2,56 +2,69 @@
 #include <windows.h>
 #include <cstdlib>
 #include <conio.h>
+#include <vector>
 using namespace std;
 void gotoxy( int column, int line );
 struct Point{
     int x,y;
 };
+
+enum Dir { STOP = 0, LEFT, RIGHT, UP, DOWN };
+enum State { BOOTING, MAIN_MENU, IN_GAME, CRITICAL_FAILURE };
+
 class CONRAN{
 public:
-    struct Point A[100];
-    int DoDai;
-    CONRAN(){
-        DoDai = 3;
-        A[0].x = 10; A[0].y = 10;
-        A[1].x = 11; A[1].y = 10;
-        A[2].x = 12; A[2].y = 10;
-    }
-    void Ve(){
-        for (int i = 0; i < DoDai; i++){
-            gotoxy(A[i].x,A[i].y);
-            cout<<"X";
+   
+    vector<Point> snake; 
+    void InitSnake() {
+    snake.clear();
+    for (int i = 0; i < 5; i++) snake.push_back({ 20 - i, 12 });
+}
+    void Ve() {
+        for (size_t i = 0; i < snake.size(); i++) {
+            gotoxy(snake[i].x, snake[i].y);
+            if (i == 0) cout << "O"; 
+            else cout << "x";       
         }
     }
-    void DiChuyen(int Huong){
-        for (int i = DoDai-1; i>0;i--)
-            A[i] = A[i-1];
-        if (Huong==0) A[0].x = A[0].x + 1;
-        if (Huong==1) A[0].y = A[0].y + 1;
-        if (Huong==2) A[0].x = A[0].x - 1;
-        if (Huong==3) A[0].y = A[0].y - 1;
 
+    void DiChuyen(Dir direction) {
+       
+        for (size_t i = snake.size() - 1; i > 0; i--) {
+            snake[i] = snake[i - 1];
+        }
+
+        
+        switch (direction) {
+            case UP:    snake[0].y--; break;
+            case DOWN:  snake[0].y++; break;
+            case LEFT:  snake[0].x--; break;
+            case RIGHT: snake[0].x++; break;
+            default: break;
+        }
     }
 };
 
 int main()
 {
     CONRAN r;
-    int Huong = 0;
+    r.InitSnake();
+    Dir direction = RIGHT;
     char t;
 
     while (1){
-        if (kbhit()){
+        if (kbhit()) {
             t = getch();
-            if (t=='a') Huong = 2;
-            if (t=='w') Huong = 3;
-            if (t=='d') Huong = 0;
-            if (t=='s') Huong = 1;
+            if (t == 'a' && direction != RIGHT) direction = LEFT;
+            if (t == 'd' && direction != LEFT)  direction = RIGHT;
+            if (t == 'w' && direction != DOWN)  direction = UP;
+            if (t == 's' && direction != UP)    direction = DOWN;
+            if (t == 27) break;
         }
         system("cls");
         r.Ve();
-        r.DiChuyen(Huong);
-        Sleep(300);
+        r.DiChuyen(direction);
+        Sleep(100);
     }
 
     return 0;
