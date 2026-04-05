@@ -7,4 +7,5 @@ Thành viên: Nguyễn Thành Tài - 25521623 (@tai210507)
 Thành viên: Cao Minh Đức - 25520320 (@supli6669)
 ----------------------------------------------------------------------
 Ấn vô release và giải nén file zip để trải nghiệm 2 phiên bản do nhóm mình làm ra.
+
 ***Lưu ý : Bản 2D cần run as admin để trải nghiệm full screen game.***
