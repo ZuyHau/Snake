@@ -339,7 +339,7 @@ public:
             " XXXXX  XX   XX  XXXXX  XX  XX XXXXXXX",
             "XX   XX XXX  XX XX   XX XX XX  XX     ",
             "  XXX   XX X XX XXXXXXX XXXX   XXXXX  ",
-            "   XXX XX  XXX XX   XX XX XX  XX     ",
+            "    XXX XX  XXX XX   XX XX XX  XX     ",
             "XXXXXX  XX   XX XX   XX XX  XX XXXXXXX"
         };
         for (int i = 0; i < 5; i++) {
